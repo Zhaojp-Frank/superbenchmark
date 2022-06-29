@@ -14,6 +14,9 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include <stdlib.h>
+#include <unistd.h>
+
 // Arguments for each sub benchmark run.
 struct SubBenchArgs {
     // Whether source device is GPU.
@@ -389,7 +392,9 @@ int CheckBuf(BenchArgs *args) {
         if (memcmp_result) {
             fprintf(stderr, "CheckBuf: Memory check failed\n");
             return -1;
-        }
+        } else {
+            fprintf(stdout, "\nCheckBuf: Memory check done\n");
+	}
     }
 
     return 0;
@@ -578,6 +583,9 @@ int RunCopy(BenchArgs *args) {
             return -1;
         }
         num_thread_blocks = args->size / num_bytes_in_thread_block;
+
+        fprintf(stdout, "RunCopy: using SM copy num_bytes_in_thread_block:%lu thread_blocks:%lu threads:%u\n", 
+			num_bytes_in_thread_block, num_thread_blocks, NUM_THREADS_IN_BLOCK);
     }
 
     // Launch jobs and collect running time
@@ -638,6 +646,8 @@ int RunCopy(BenchArgs *args) {
     }
 
     PrintResultTag(*args);
+
+    system("nvidia-smi");
     printf(" %g\n", args->size * args->num_loops * args->num_subs / max_time_in_ms / 1e6);
 
     return 0;
